@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lista de Compras Moderna</title>
+  <style>
+    :root {
+      --verde: #28a745;
+      --vermelho: #dc3545;
+      --azul: #007bff;
+      --cinza: #6c757d;
+      --branco: #ffffff;
+      --fundo: rgba(255, 255, 255, 0.9);
+      --texto: #333333;
+      --fundo-container: #ffffff;
+      --sombra: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --borda: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode {
+      --verde: #48c774;
+      --vermelho: #ff3860;
+      --azul: #3298dc;
+      --cinza: #7a7a7a;
+      --branco: #363636;
+      --fundo: rgba(10, 10, 10, 0.85);
+      --texto: #f5f5f5;
+      --fundo-container: #1a1a1a;
+      --sombra: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --borda: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      background-image: url('https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: var(--texto);
+      min-height: 100vh;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--fundo);
+      z-index: -1;
+      transition: background 0.3s;
+    }
+    
+    .container {
+      max-width: 100%;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+    }
+    
+    .app-container {
+      background: var(--fundo-container);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--sombra);
+      backdrop-filter: blur(5px);
+      border: var(--borda);
+      transition: all 0.3s;
+    }
+    
+    h1 {
+      color: var(--verde);
+      text-align: center;
+      margin: 0 0 20px;
+      font-size: 1.8rem;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--verde);
+      font-weight: 700;
+    }
+    
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--cinza);
+      border-radius: 10px;
+      font-size: 1rem;
+      background-color: var(--branco);
+      color: var(--texto);
+      transition: all 0.3s;
+    }
+    
+    input:focus, select:focus {
+      border-color: var(--verde);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+    }
+    
+    button {
+      padding: 14px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+    
+    .btn-add {
+      background: var(--verde);
+      color: white;
+      width: 100%;
+      font-size: 1.1rem;
+    }
+    
+    .btn-add:active {
+      background: var(--verde);
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+    
+    .btn-remove {
+      background: var(--vermelho);
+      color: white;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      border-radius: 8px;
+    }
+    
+    .btn-remove:active {
+      background: var(--vermelho);
+      opacity: 0.9;
+      transform: scale(0.95);
+    }
+    
+    .btn-complete {
+      background: var(--cinza);
+      color: white;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      border-radius: 8px;
+    }
+    
+    .btn-complete:active {
+      background: var(--cinza);
+      opacity: 0.9;
+      transform: scale(0.95);
+    }
+    
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0;
+      justify-content: center;
+    }
+    
+    .filter-btn {
+      background: var(--azul);
+      color: white;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    
+    .filter-btn.active {
+      background: var(--azul);
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+    
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      background: var(--branco);
+      border-left: 4px solid var(--verde);
+      border-radius: 10px;
+      box-shadow: var(--sombra);
+      transition: all 0.2s;
+    }
+    
+    li.completed {
+      opacity: 0.7;
+      border-left-color: var(--cinza);
+      text-decoration: line-through;
+      background: var(--fundo-container);
+    }
+    
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-grow: 1;
+    }
+    
+    .item-category {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--verde);
+    }
+    
+    li.completed .item-category {
+      color: var(--cinza);
+    }
+    
+    .item-name {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    
+    .item-details {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: var(--texto);
+      opacity: 0.8;
+    }
+    
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: 12px;
+    }
+    
+    .total {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin: 25px 0 15px;
+      color: var(--verde);
+      padding: 12px;
+      background-color: rgba(40, 167, 69, 0.1);
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .credits {
+      text-align: center;
+      padding: 15px 0 5px;
+      font-size: 0.8rem;
+      color: var(--cinza);
+      margin-top: 20px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .btn-theme {
+      background: var(--azul);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+    
+    .btn-save {
+      background: var(--verde);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+    
+    /* Calculadora de peso */
+    .calculator-container {
+      background: var(--branco);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: var(--sombra);
+      display: none;
+    }
+    
+    .calculator-container.active {
+      display: block;
+    }
+    
+    .calculator-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--verde);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .calculator-close {
+      background: none;
+      border: none;
+      color: var(--vermelho);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0;
+    }
+    
+    .calculator-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    
+    .calculator-btn {
+      background: var(--azul);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    
+    .calculator-btn.operator {
+      background: var(--verde);
+    }
+    
+    .calculator-btn.clear {
+      background: var(--vermelho);
+    }
+    
+    .calculator-display {
+      grid-column: span 4;
+      padding: 10px;
+      background: var(--branco);
+      border: 1px solid var(--cinza);
+      border-radius: 5px;
+      text-align: right;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+    
+    .btn-calculator {
+      background: var(--cinza);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    
+    @media (min-width: 400px) {
+      .container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 30px 20px;
+      }
+      
+      .input-group {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      
+      input, select {
+        flex: 1 1 45%;
+      }
+      
+      .btn-add {
+        flex: 1 1 100%;
+      }
+    }
+    
+    /* Animações */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    li {
+      animation: fadeIn 0.3s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="app-container">
+      <h1>🛒 Lista de Compras</h1>
+      
+      <div class="action-buttons">
+        <button class="btn-theme" id="themeToggle">🌙 Modo Escuro</button>
+        <button class="btn-save" onclick="saveListToFile()">💾 Salvar Lista</button>
+      </div>
+      
+      <button class="btn-calculator" onclick="toggleCalculator()">🧮 Calculadora de Peso</button>
+      
+      <div class="calculator-container" id="calculatorContainer">
+        <div class="calculator-title">
+          Calculadora de Peso (kg)
+          <button class="calculator-close" onclick="toggleCalculator()">×</button>
+        </div>
+        <div class="calculator-display" id="calcDisplay">0</div>
+        <div class="calculator-grid">
+          <button class="calculator-btn clear" onclick="clearCalculator()">C</button>
+          <button class="calculator-btn" onclick="appendToCalculator('7')">7</button>
+          <button class="calculator-btn" onclick="appendToCalculator('8')">8</button>
+          <button class="calculator-btn" onclick="appendToCalculator('9')">9</button>
+          <button class="calculator-btn" onclick="appendToCalculator('4')">4</button>
+          <button class="calculator-btn" onclick="appendToCalculator('5')">5</button>
+          <button class="calculator-btn" onclick="appendToCalculator('6')">6</button>
+          <button class="calculator-btn operator" onclick="appendToCalculator('*')">×</button>
+          <button class="calculator-btn" onclick="appendToCalculator('1')">1</button>
+          <button class="calculator-btn" onclick="appendToCalculator('2')">2</button>
+          <button class="calculator-btn" onclick="appendToCalculator('3')">3</button>
+          <button class="calculator-btn operator" onclick="appendToCalculator('/')">÷</button>
+          <button class="calculator-btn" onclick="appendToCalculator('0')">0</button>
+          <button class="calculator-btn" onclick="appendToCalculator('.')">.</button>
+          <button class="calculator-btn operator" onclick="calculateResult()">=</button>
+          <button class="calculator-btn operator" onclick="appendToCalculator('+')">+</button>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <input type="text" id="itemName" placeholder="Produto" oninput="suggestCategory()">
+        <input type="number" id="itemQty" placeholder="Quantidade" min="1" value="1">
+        <input type="number" id="itemPrice" placeholder="Preço (R$)" step="0.01" min="0">
+        <select id="itemCategory">
+          <option value="🥦 Alimentos">🥦 Alimentos</option>
+          <option value="🍖 Carnes">🍖 Carnes</option>
+          <option value="🧼 Limpeza">🧼 Limpeza</option>
+          <option value="🍽️ Utensílios">🍽️ Utensílios</option>
+          <option value="🍎 Frutas">🍎 Frutas</option>
+          <option value="🥛 Laticínios">🥛 Laticínios</option>
+          <option value="🍞 Padaria">🍞 Padaria</option>
+          <option value="🧴 Higiene">🧴 Higiene</option>
+          <option value="🍫 Doces">🍫 Doces</option>
+          <option value="🥤 Bebidas">🥤 Bebidas</option>
+          <option value="🧂 Condimentos">🧂 Condimentos</option>
+          <option value="🍪 Biscoitos">🍪 Biscoitos</option>
+          <option value="🍦 Congelados">🍦 Congelados</option>
+          <option value="🍼 Infantil">🍼 Infantil</option>
+          <option value="🐟 Peixes">🐟 Peixes</option>
+          <option value="🍷 Vinhos">🍷 Vinhos</option>
+        </select>
+        <button class="btn-add" onclick="addItem()">Adicionar</button>
+      </div>
+      
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterItems('all')">Todos</button>
+        <button class="filter-btn" onclick="filterItems('🥦 Alimentos')">🥦</button>
+        <button class="filter-btn" onclick="filterItems('🍖 Carnes')">🍖</button>
+        <button class="filter-btn" onclick="filterItems('🧼 Limpeza')">🧼</button>
+        <button class="filter-btn" onclick="filterItems('🍽️ Utensílios')">🍽️</button>
+        <button class="filter-btn" onclick="filterItems('🍎 Frutas')">🍎</button>
+        <button class="filter-btn" onclick="filterItems('🥛 Laticínios')">🥛</button>
+        <button class="filter-btn" onclick="filterItems('🍞 Padaria')">🍞</button>
+        <button class="filter-btn" onclick="filterItems('🧴 Higiene')">🧴</button>
+        <button class="filter-btn" onclick="filterItems('🍫 Doces')">🍫</button>
+        <button class="filter-btn" onclick="filterItems('🥤 Bebidas')">🥤</button>
+      </div>
+      
+      <ul id="shoppingList"></ul>
+      
+      <div class="total">
+        Total: R$ <span id="totalAmount">0.00</span>
+      </div>
+      
+      <div class="credits">
+        Desenvolvido por André Carlos
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Variáveis globais
+    let items = JSON.parse(localStorage.getItem('shoppingItems')) || [];
+    let total = parseFloat(localStorage.getItem('shoppingTotal')) || 0;
+    let currentFilter = 'all';
+    let darkMode = localStorage.getItem('darkMode') === 'true';
+    let calculatorValue = '0';
+
+    // Mapeamento de produtos para categorias (ampliado)
+    const categoryMap = {
+      // Alimentos básicos
+      'arroz': '🥦 Alimentos', 'feijão': '🥦 Alimentos', 'macarrão': '🥦 Alimentos',
+      'óleo': '🥦 Alimentos', 'açúcar': '🥦 Alimentos', 'sal': '🥦 Alimentos',
+      'café': '🥦 Alimentos', 'farinha': '🥦 Alimentos', 'milho': '🥦 Alimentos',
+      'aveia': '🥦 Alimentos', 'granola': '🥦 Alimentos', 'trigo': '🥦 Alimentos',
+      'pipoca': '🥦 Alimentos', 'lentilha': '🥦 Alimentos', 'ervilha': '🥦 Alimentos',
+      'grão de bico': '🥦 Alimentos', 'soja': '🥦 Alimentos', 'fubá': '🥦 Alimentos',
+      
+      // Laticínios
+      'leite': '🥛 Laticínios', 'queijo': '🥛 Laticínios', 'manteiga': '🥛 Laticínios',
+      'iogurte': '🥛 Laticínios', 'requeijão': '🥛 Laticínios', 'creme de leite': '🥛 Laticínios',
+      'leite condensado': '🥛 Laticínios', 'chantilly': '🥛 Laticínios', 'coalhada': '🥛 Laticínios',
+      'ricota': '🥛 Laticínios', 'parmesão': '🥛 Laticínios', 'provolone': '🥛 Laticínios',
+      'gorgonzola': '🥛 Laticínios', 'mussarela': '🥛 Laticínios', 'iogurte grego': '🥛 Laticínios',
+      
+      // Carnes
+      'peixe': '🍖 Carnes', 'frango': '🍖 Carnes', 'carne': '🍖 Carnes',
+      'bife': '🍖 Carnes', 'linguiça': '🍖 Carnes', 'salsicha': '🍖 Carnes',
+      'presunto': '🍖 Carnes', 'mortadela': '🍖 Carnes', 'salame': '🍖 Carnes',
+      'pernil': '🍖 Carnes', 'costela': '🍖 Carnes', 'alcatra': '🍖 Carnes',
+      'picanha': '🍖 Carnes', 'maminha': '🍖 Carnes', 'contrafilé': '🍖 Carnes',
+      'fígado': '🍖 Carnes', 'coração': '🍖 Carnes', 'peito de frango': '🍖 Carnes',
+      'coxa de frango': '🍖 Carnes', 'asinha': '🍖 Carnes',
+      
+      // Peixes
+      'salmão': '🐟 Peixes', 'tilápia': '🐟 Peixes', 'bacalhau': '🐟 Peixes',
+      'sardinha': '🐟 Peixes', 'atum': '🐟 Peixes', 'pescada': '🐟 Peixes',
+      'corvina': '🐟 Peixes', 'robalo': '🐟 Peixes', 'cavala': '🐟 Peixes',
+      'dourado': '🐟 Peixes', 'linguado': '🐟 Peixes', 'truta': '🐟 Peixes',
+      
+      // Frutas
+      'maçã': '🍎 Frutas', 'banana': '🍎 Frutas', 'laranja': '🍎 Frutas',
+      'tomate': '🍎 Frutas', 'uva': '🍎 Frutas', 'mamão': '🍎 Frutas',
+      'melancia': '🍎 Frutas', 'melão': '🍎 Frutas', 'abacaxi': '🍎 Frutas',
+      'manga': '🍎 Frutas', 'pera': '🍎 Frutas', 'pêssego': '🍎 Frutas',
+      'ameixa': '🍎 Frutas', 'kiwi': '🍎 Frutas', 'morango': '🍎 Frutas',
+      'framboesa': '🍎 Frutas', 'amora': '🍎 Frutas', 'abacate': '🍎 Frutas',
+      'limão': '🍎 Frutas', 'lima': '🍎 Frutas', 'tangerina': '🍎 Frutas',
+      'caqui': '🍎 Frutas', 'figo': '🍎 Frutas', 'goiaba': '🍎 Frutas',
+      'maracujá': '🍎 Frutas', 'caju': '🍎 Frutas', 'acerola': '🍎 Frutas',
+      'carambola': '🍎 Frutas', 'pitaya': '🍎 Frutas', 'physalis': '🍎 Frutas',
+      
+      // Limpeza
+      'sabão': '🧼 Limpeza', 'detergente': '🧼 Limpeza', 'desinfetante': '🧼 Limpeza',
+      'água sanitária': '🧼 Limpeza', 'esponja': '🧼 Limpeza', 'pano': '🧼 Limpeza',
+      'sabão em pó': '🧼 Limpeza', 'amaciante': '🧼 Limpeza', 'álcool': '🧼 Limpeza',
+      'lustra móveis': '🧼 Limpeza', 'limpa vidros': '🧼 Limpeza', 'saco de lixo': '🧼 Limpeza',
+      'vassoura': '🧼 Limpeza', 'rodo': '🧼 Limpeza', 'pá': '🧼 Limpeza',
+      'balde': '🧼 Limpeza', 'bucha': '🧼 Limpeza', 'saco plástico': '🧼 Limpeza',
+      'luvas de limpeza': '🧼 Limpeza', 'multiuso': '🧼 Limpeza', 'tira manchas': '🧼 Limpeza',
+      
+      // Utensílios
+      'garfo': '🍽️ Utensílios', 'faca': '🍽️ Utensílios', 'colher': '🍽️ Utensílios',
+      'panela': '🍽️ Utensílios', 'prato': '🍽️ Utensílios', 'copo': '🍽️ Utensílios',
+      'xícara': '🍽️ Utensílios', 'talher': '🍽️ Utensílios', 'tábua': '🍽️ Utensílios',
+      'frigideira': '🍽️ Utensílios', 'assadeira': '🍽️ Utensílios', 'pote': '🍽️ Utensílios',
+      'forma': '🍽️ Utensílios', 'espremedor': '🍽️ Utensílios', 'ralador': '🍽️ Utensílios',
+      'peneira': '🍽️ Utensílios', 'batedeira': '🍽️ Utensílios', 'liquidificador': '🍽️ Utensílios',
+      'processador': '🍽️ Utensílios', 'abridor': '🍽️ Utensílios', 'descascador': '🍽️ Utensílios',
+      
+      // Padaria
+      'pão': '🍞 Padaria', 'bolo': '🍞 Padaria', 'rosquinha': '🍞 Padaria',
+      'croissant': '🍞 Padaria', 'baguete': '🍞 Padaria', 'biscoito': '🍪 Biscoitos',
+      'torrada': '🍞 Padaria', 'sonho': '🍞 Padaria', 'pão de queijo': '🍞 Padaria',
+      'empada': '🍞 Padaria', 'esfiha': '🍞 Padaria', 'pão integral': '🍞 Padaria',
+      'pão francês': '🍞 Padaria', 'pão de forma': '🍞 Padaria', 'pão sírio': '🍞 Padaria',
+      'pão doce': '🍞 Padaria', 'bolacha': '🍪 Biscoitos', 'cookie': '🍪 Biscoitos',
+      'torta': '🍞 Padaria', 'pão de centeio': '🍞 Padaria', 'pão de aveia': '🍞 Padaria',
+      
+      // Higiene
+      'shampoo': '🧴 Higiene', 'condicionador': '🧴 Higiene', 'sabonete': '🧴 Higiene',
+      'creme dental': '🧴 Higiene', 'escova': '🧴 Higiene', 'fio dental': '🧴 Higiene',
+      'desodorante': '🧴 Higiene', 'lâmina': '🧴 Higiene', 'creme': '🧴 Higiene',
+      'protetor solar': '🧴 Higiene', 'absorvente': '🧴 Higiene', 'papel higiênico': '🧴 Higiene',
+      'lenço umedecido': '🧴 Higiene', 'algodão': '🧴 Higiene', 'cotonete': '🧴 Higiene',
+      'hidratante': '🧴 Higiene', 'perfume': '🧴 Higiene', 'colônia': '🧴 Higiene',
+      'pasta de dente': '🧴 Higiene', 'enxaguante bucal': '🧴 Higiene', 'barbeador': '🧴 Higiene',
+      
+      // Doces
+      'chocolate': '🍫 Doces', 'bala': '🍫 Doces', 'pirulito': '🍫 Doces',
+      'goma': '🍫 Doces', 'doce de leite': '🍫 Doces', 'geleia': '🍫 Doces',
+      'marshmallow': '🍫 Doces', 'chiclete': '🍫 Doces', 'brigadeiro': '🍫 Doces',
+      'beijinho': '🍫 Doces', 'paçoca': '🍫 Doces', 'pé de moleque': '🍫 Doces',
+      'rapadura': '🍫 Doces', 'goiabada': '🍫 Doces', 'marmelada': '🍫 Doces',
+      'suspiro': '🍫 Doces', 'merengue': '🍫 Doces', 'alfajor': '🍫 Doces',
+      'trufa': '🍫 Doces', 'fondue': '🍫 Doces', 'sorvete': '🍦 Congelados',
+      
+      // Bebidas
+      'refrigerante': '🥤 Bebidas', 'suco': '🥤 Bebidas', 'água': '🥤 Bebidas',
+      'cerveja': '🥤 Bebidas', 'vinho': '🍷 Vinhos', 'whisky': '🥤 Bebidas',
+      'vodka': '🥤 Bebidas', 'cachaça': '🥤 Bebidas', 'energético': '🥤 Bebidas',
+      'chá': '🥤 Bebidas', 'café solúvel': '🥤 Bebidas', 'achocolatado': '🥤 Bebidas',
+      'água de coco': '🥤 Bebidas', 'água com gás': '🥤 Bebidas', 'água tônica': '🥤 Bebidas',
+      'limonada': '🥤 Bebidas', 'mate': '🥤 Bebidas', 'guaraná': '🥤 Bebidas',
+      'isotônico': '🥤 Bebidas', 'licor': '🥤 Bebidas', 'rum': '🥤 Bebidas',
+      
+      // Condimentos
+      'ketchup': '🧂 Condimentos', 'mostarda': '🧂 Condimentos', 'maionese': '🧂 Condimentos',
+      'molho inglês': '🧂 Condimentos', 'molho shoyu': '🧂 Condimentos', 'azeite': '🧂 Condimentos',
+      'vinagre': '🧂 Condimentos', 'pimenta': '🧂 Condimentos', 'orégano': '🧂 Condimentos',
+      'alho': '🧂 Condimentos', 'cebola': '🧂 Condimentos', 'salsa': '🧂 Condimentos',
+      'coentro': '🧂 Condimentos', 'manjericão': '🧂 Condimentos', 'louro': '🧂 Condimentos',
+      'canela': '🧂 Condimentos', 'cravo': '🧂 Condimentos', 'noz moscada': '🧂 Condimentos',
+      'colorau': '🧂 Condimentos', 'páprica': '🧂 Condimentos', 'cominho': '🧂 Condimentos',
+      
+      // Biscoitos
+      'biscoito água': '🍪 Biscoitos', 'biscoito cream cracker': '🍪 Biscoitos', 'biscoito recheado': '🍪 Biscoitos',
+      'biscoito wafer': '🍪 Biscoitos', 'biscoito maisena': '🍪 Biscoitos', 'biscoito integral': '🍪 Biscoitos',
+      'biscoito de polvilho': '🍪 Biscoitos', 'rosquinha de coco': '🍪 Biscoitos', 'biscoito de aveia': '🍪 Biscoitos',
+      'biscoito de gengibre': '🍪 Biscoitos', 'biscoito de chocolate': '🍪 Biscoitos', 'biscoito de leite': '🍪 Biscoitos',
+      
+      // Congelados
+      'pizza': '🍦 Congelados', 'lasanha': '🍦 Congelados', 'hambúrguer': '🍦 Congelados',
+      'nuggets': '🍦 Congelados', 'batata frita': '🍦 Congelados', 'sorvete': '🍦 Congelados',
+      'açaí': '🍦 Congelados', 'pão de alho': '🍦 Congelados', 'esfiha congelada': '🍦 Congelados',
+      'empada congelada': '🍦 Congelados', 'yakissoba': '🍦 Congelados', 'polenta': '🍦 Congelados',
+      'pão de queijo congelado': '🍦 Congelados', 'coxinha': '🍦 Congelados', 'kibe': '🍦 Congelados',
+      
+      // Infantil
+      'fralda': '🍼 Infantil', 'pomada': '🍼 Infantil', 'leite em pó': '🍼 Infantil',
+      'papinha': '🍼 Infantil', 'chupeta': '🍼 Infantil', 'mamadeira': '🍼 Infantil',
+      'talco': '🍼 Infantil', 'lenço umedecido': '🍼 Infantil', 'sabonete líquido': '🍼 Infantil',
+      'shampoo infantil': '🍼 Infantil', 'creme dental infantil': '🍼 Infantil', 'escova infantil': '🍼 Infantil',
+      'toalha umedecida': '🍼 Infantil', 'absorvente infantil': '🍼 Infantil', 'pomada assadura': '🍼 Infantil',
+      
+      // Vinhos
+      'vinho tinto': '🍷 Vinhos', 'vinho branco': '🍷 Vinhos', 'vinho rosé': '🍷 Vinhos',
+      'vinho seco': '🍷 Vinhos', 'vinho suave': '🍷 Vinhos', 'vinho espumante': '🍷 Vinhos',
+      'vinho do porto': '🍷 Vinhos', 'vinho moscatel': '🍷 Vinhos', 'vinho cabernet': '🍷 Vinhos',
+      'vinho merlot': '🍷 Vinhos', 'vinho malbec': '🍷 Vinhos', 'vinho syrah': '🍷 Vinhos',
+      'vinho chardonnay': '🍷 Vinhos', 'vinho sauvignon': '🍷 Vinhos', 'vinho pinot': '🍷 Vinhos'
+    };
+
+    // Inicialização
+    window.onload = function() {
+      applyDarkMode();
+      updateList();
+      updateTotal();
+      document.getElementById('itemName').focus();
+      
+      // Configura o botão de tema
+      const themeToggle = document.getElementById('themeToggle');
+      themeToggle.addEventListener('click', toggleDarkMode);
+      updateThemeButton();
+    };
+
+    // Alternar modo escuro/claro
+    function toggleDarkMode() {
+      darkMode = !darkMode;
+      localStorage.setItem('darkMode', darkMode);
+      applyDarkMode();
+      updateThemeButton();
+    }
+
+    function applyDarkMode() {
+      if (darkMode) {
+        document.body.classList.add('dark-mode');
+      } else {
+        document.body.classList.remove('dark-mode');
+      }
+    }
+
+    function updateThemeButton() {
+      const themeToggle = document.getElementById('themeToggle');
+      themeToggle.textContent = darkMode ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+    }
+
+    // Salvar lista como arquivo
+    function saveListToFile() {
+      if (items.length === 0) {
+        alert('A lista está vazia!');
+        return;
+      }
+
+      let listText = '🛒 Lista de Compras 🛒\n\n';
+      listText += 'Itens: ' + items.length + '\n';
+      listText += 'Total: R$ ' + total.toFixed(2) + '\n\n';
+      
+      // Agrupar por categoria
+      const categories = {};
+      items.forEach(item => {
+        if (!categories[item.category]) {
+          categories[item.category] = [];
+        }
+        categories[item.category].push(item);
+      });
+
+      // Adicionar itens por categoria
+      for (const [category, categoryItems] of Object.entries(categories)) {
+        listText += category + ':\n';
+        categoryItems.forEach(item => {
+          const status = item.completed ? '✓ ' : '';
+          listText += `${status}${item.name} - ${item.qty}x R$ ${item.price.toFixed(2)} = R$ ${item.totalPrice.toFixed(2)}\n`;
+        });
+        listText += '\n';
+      }
+
+      listText += '\nGerado em: ' + new Date().toLocaleString();
+      listText += '\n\nDesenvolvido por André Carlos';
+
+      // Criar blob e link para download
+      const blob = new Blob([listText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'lista_de_compras_' + new Date().toISOString().slice(0, 10) + '.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Funções da calculadora
+    function toggleCalculator() {
+      const calculator = document.getElementById('calculatorContainer');
+      calculator.classList.toggle('active');
+    }
+
+    function appendToCalculator(value) {
+      if (calculatorValue === '0' && value !== '.') {
+        calculatorValue = value;
+      } else {
+        calculatorValue += value;
+      }
+      updateCalculatorDisplay();
+    }
+
+    function clearCalculator() {
+      calculatorValue = '0';
+      updateCalculatorDisplay();
+    }
+
+    function calculateResult() {
+      try {
+        // Substitui × por * e ÷ por / para avaliação
+        const expression = calculatorValue.replace(/×/g, '*').replace(/÷/g, '/');
+        calculatorValue = eval(expression).toString();
+        updateCalculatorDisplay();
+        
+        // Preenche automaticamente o campo de preço com o resultado
+        document.getElementById('itemPrice').value = calculatorValue;
+      } catch (e) {
+        calculatorValue = 'Erro';
+        updateCalculatorDisplay();
+        setTimeout(clearCalculator, 1000);
+      }
+    }
+
+    function updateCalculatorDisplay() {
+      document.getElementById('calcDisplay').textContent = calculatorValue;
+    }
+
+    function suggestCategory() {
+      const productName = document.getElementById('itemName').value.toLowerCase();
+      let foundCategory = '🥦 Alimentos';
+      
+      for (const [keyword, category] of Object.entries(categoryMap)) {
+        if (productName.includes(keyword)) {
+          foundCategory = category;
+          break;
+        }
+      }
+      
+      document.getElementById('itemCategory').value = foundCategory;
+    }
+
+    function addItem() {
+      const name = document.getElementById('itemName').value.trim();
+      const qty = parseInt(document.getElementById('itemQty').value) || 1;
+      const price = parseFloat(document.getElementById('itemPrice').value) || 0;
+      const category = document.getElementById('itemCategory').value;
+
+      if (!name) {
+        alert('Por favor, digite o nome do produto!');
+        document.getElementById('itemName').focus();
+        return;
+      }
+
+      const totalPrice = qty * price;
+      const newItem = {
+        id: Date.now(),
+        name,
+        qty,
+        price,
+        category,
+        totalPrice,
+        completed: false
+      };
+
+      items.push(newItem);
+      if (!newItem.completed) {
+        total += totalPrice;
+      }
+      saveData();
+      updateList();
+      updateTotal();
+
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemPrice').value = '';
+      document.getElementById('itemName').focus();
+    }
+
+    function removeItem(id) {
+      const itemIndex = items.findIndex(item => item.id === id);
+      if (itemIndex !== -1) {
+        if (!items[itemIndex].completed) {
+          total -= items[itemIndex].totalPrice;
+        }
+        items.splice(itemIndex, 1);
+        saveData();
+        updateList();
+        updateTotal();
+      }
+    }
+
+    function toggleComplete(id) {
+      const item = items.find(item => item.id === id);
+      if (item) {
+        item.completed = !item.completed;
+        if (item.completed) {
+          total -= item.totalPrice;
+        } else {
+          total += item.totalPrice;
+        }
+        saveData();
+        updateList();
+        updateTotal();
+      }
+    }
+
+    function filterItems(category) {
+      currentFilter = category;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      updateList();
+    }
+
+    function updateList() {
+      const listElement = document.getElementById('shoppingList');
+      listElement.innerHTML = '';
+
+      const filteredItems = currentFilter === 'all' 
+        ? items 
+        : items.filter(item => item.category === currentFilter);
+
+      if (filteredItems.length === 0) {
+        listElement.innerHTML = '<li style="justify-content: center; background: none; box-shadow: none; border: none;">Nenhum item na lista</li>';
+        return;
+      }
+
+      filteredItems.forEach(item => {
+        const li = document.createElement('li');
+        if (item.completed) {
+          li.classList.add('completed');
+        }
+
+        li.innerHTML = `
+          <div class="item-info">
+            <span class="item-category">${item.category}</span>
+            <span class="item-name">${item.name}</span>
+            <div class="item-details">
+              <span>Quant: ${item.qty}</span>
+              <span>R$ ${item.totalPrice.toFixed(2)}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="btn-complete" onclick="toggleComplete(${item.id})">
+              ${item.completed ? '✓' : '○'}
+            </button>
+            <button class="btn-remove" onclick="removeItem(${item.id})">✕</button>
+          </div>
+        `;
+
+        listElement.appendChild(li);
+      });
+    }
+
+    function updateTotal() {
+      document.getElementById('totalAmount').textContent = total.toFixed(2);
+    }
+
+    function saveData() {
+      localStorage.setItem('shoppingItems', JSON.stringify(items));
+      localStorage.setItem('shoppingTotal', total.toString());
+    }
+  </script>
+</body>
+</html>
